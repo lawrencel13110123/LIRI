@@ -4,7 +4,8 @@ var request = require("request");
 var Twitter = require("twitter");
 var Spotify = require("node-spotify-api");
 var command = process.argv[2];
-var songTitle; 
+var songTitle = ""; 
+var movieName = ""; 
 
 
 function twitterThis () {
@@ -43,7 +44,6 @@ function twitterThis () {
 function spotifyThis (songTitle) {
 	var spotify = new Spotify(keys.spotifyKeys);
 	var nodeArgs = process.argv; 
-	songTitle; 
 	if (songTitle === undefined) {
 		songtitle = "The Sign"
 	};
@@ -54,13 +54,13 @@ function spotifyThis (songTitle) {
 		}
 		else {
 			songTitle += nodeArgs[i]; 
-		}
+		};
 	}; 
 
 	spotify.search({ type: "track", query: songTitle}, function(err, data) {
   		if (err) {
     		return console.log("Error occurred: " + err);
-  		}
+  		};
  		
  		//each item is essentially a song returned from the search query 
 		var songs = data.tracks.items
@@ -93,9 +93,8 @@ function spotifyThis (songTitle) {
 };
 
 
-function movieThis () {
+function movieThis (movieName) {
 	var nodeArgs = process.argv; 
-	var movieName = ""; 
 	if (movieName === undefined) {
 		movieName = "Mr. Nobody"
 	};
@@ -127,10 +126,10 @@ function movieThis () {
 				rottenTomatoes = json.Ratings[1].Value
 				console.log("Rotten Tomatoes Rating: " + json.Ratings[1].Value);
 			}
-			console.log("Country: " + json.Country)
-			console.log("Language: " + json.Language)
-			console.log("Actors: " + json.Actors)
-			console.log("Plot: " + json.Plot)
+			console.log("Country: " + json.Country);
+			console.log("Language: " + json.Language);
+			console.log("Actors: " + json.Actors);
+			console.log("Plot: " + json.Plot);
 			fs.appendFile("log.txt", "===Entry Start===\r\n" + " Title: " + json.Title + " Year: " + json.Year + " IMBD Rating: " + json.imdbRating + " Rotten Tomatoes Rating: " + rottenTomatoes + " Country: " + json.Country + " Language: " + json.Language + " Actors: " + json.Actors + " Plot: " + json.Plot + "\r\n===Entry End===\r\n", function(err) {
 					if (err) throw err ; 
 			});
@@ -146,28 +145,35 @@ function randomThis () {
 		}
 		else {
 			var dataArr = data.split(",")
-			console.log(dataArr[1])
-			spotifyThis(songTitle)
+			if (dataArr[0] === "spotify-this-song") {
+				spotifyThis(dataArr[1]);
+			} else if (dataArr[0] === "movie-this") {
+				movieThis(dataArr[1]);
+			} else if (dataArr[0] === "my-tweets") {
+				twitterThis();
+			}; 
 		};
 	});
 
 };
 
-randomThis()
-
 switch(command) {
+	//node liri.js my-tweets --> gives you the most recent 20 tweets of CNN
 	case "my-tweets": 
 	twitterThis(); 
 	break; 
 
+	//node liri.js spotify-this-song title --> give you all related song info 
 	case "spotify-this-song": 
-	spotifyThis(); 
+	spotifyThis(songTitle); 
 	break; 
 
+	//node liri.js movie-this title --> give you related movie info
 	case "movie-this": 
-	movieThis(); 
+	movieThis(movieName); 
 	break; 
 
+	//node liri.js do-what-it-says --> give info based on command (my-tweets, spotify-this-song, movie-this) in random.txt file 
 	case "do-what-it-says": 
 	randomThis(); 
 	break; 
